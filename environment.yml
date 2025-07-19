@@ -1,0 +1,40 @@
+name: nfl-fg
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.11
+  - ipython
+  - jupyter
+  - ipykernel
+  - pandas
+  - numpy==1.26.4
+  - matplotlib
+  - seaborn
+  - scikit-learn==1.5.2
+  - pyarrow
+  - tqdm
+  - ffmpeg
+  - xgboost
+  - optuna
+  - shap
+  - statsmodels
+  - pymc
+  - arviz
+  - pytensor
+  - graphviz
+  - python-graphviz
+  - plotly
+  - bokeh
+  - corner
+  - blackjax
+  - numpyro
+  - jax
+  - aesara
+  
+  - pip
+  - pip:
+    - nfl-data-py
+    - bambi
+    - pymc-experimental
+    - preliz
