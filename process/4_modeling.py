@@ -172,7 +172,7 @@ with pm.Model() as model_poly2:
         "kicker_season_ytg_slope", 
         sigma=sigma_rw_slope, 
         shape=n_kicker_seasons,
-        init_dist=pm.Normal.dist(-0.5, 1)
+        init_dist=pm.HalfNormal.dist(1) * -1 # Constrain to negative values
     )
     
     logit_p = (
