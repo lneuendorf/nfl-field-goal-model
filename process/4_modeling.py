@@ -41,6 +41,7 @@ fg_attempts = (
         on='stadium_id',
         how='left'
     )
+    .drop_duplicates()
 )
 logger.info(f"Data loaded with {len(fg_attempts)} rows")
 
@@ -172,7 +173,7 @@ with pm.Model() as model_poly2:
         "kicker_season_ytg_slope", 
         sigma=sigma_rw_slope, 
         shape=n_kicker_seasons,
-        init_dist=pm.HalfNormal.dist(1) * -1 # Constrain to negative values
+        init_dist=pm.Normal.dist(mu=-1, sigma=1)
     )
     
     logit_p = (
