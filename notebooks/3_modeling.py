@@ -139,42 +139,46 @@ with pm.Model() as model_poly2:
     beta_elev = pm.Normal("beta_elev", 0.05, .5)
     beta_elev_ytg = pm.Normal("beta_elev_ytg", 0, 1)
 
+    # Kicker intercepts
     from collections import defaultdict
     kicker_season_map = defaultdict(list)
     for i, (kicker_id, season) in enumerate(zip(dataset["kicker_player_id"], dataset["season"])):
         kicker_season_map[kicker_id].append((season, i))
-    
-    unique_kickers = list(kicker_season_map.keys())
-    n_kickers = len(unique_kickers)
-    
+    dataset["kicker_season"] = [
+        f"{kicker_id}_{season}" for kicker_id, season in zip(dataset["kicker_player_id"], dataset["season"])
+    ]  
+
+    unique_kicker_seasons = dataset["kicker_season"].unique()
+    n_kicker_seasons = len(unique_kicker_seasons)
+    logger.info(f"Number of unique kicker-seasons: {n_kicker_seasons}")
+
     # Create a matrix to map from kicker-season to their position in the GRW
-    kicker_grw_idx = np.zeros(len(dataset), dtype=int)
-    for kicker_idx, kicker_id in enumerate(unique_kickers):
-        for season, data_idx in kicker_season_map[kicker_id]:
-            kicker_grw_idx[data_idx] = kicker_idx
-    
+    kicker_season_grw_idx = np.zeros(len(dataset), dtype=int)
+    for kicker_season_idx, kicker_season in enumerate(unique_kicker_seasons):
+        kicker_season_grw_idx[dataset["kicker_season"] == kicker_season] = kicker_season_idx
+
     # Hyperpriors for GRW
     sigma_rw_intercept = pm.Exponential("sigma_rw_intercept", 1.0)
     sigma_rw_slope = pm.Exponential("sigma_rw_slope", 1.0)
-    
-    # Gaussian Random Walks for kicker effects
-    kicker_intercepts = pm.GaussianRandomWalk(
-        "kicker_intercept", 
-        sigma=sigma_rw_intercept, 
-        shape=n_kickers,
+
+    # Gaussian Random Walk for kicker-season intercepts
+    kicker_season_intercepts = pm.GaussianRandomWalk(
+        "kicker_season_intercept",
+        sigma=sigma_rw_intercept,
+        shape=n_kicker_seasons,
         init_dist=pm.Normal.dist(0, 1)
     )
-    kicker_ytg_slopes = pm.GaussianRandomWalk(
-        "kicker_ytg_slope", 
+    kicker_season_ytg_slopes = pm.GaussianRandomWalk(
+        "kicker_season_ytg_slope", 
         sigma=sigma_rw_slope, 
-        shape=n_kickers,
+        shape=n_kicker_seasons,
         init_dist=pm.Normal.dist(-0.5, 1)
     )
     
     logit_p = (
         alpha
-        + kicker_intercepts[kicker_grw_idx]  
-        + kicker_ytg_slopes[kicker_grw_idx] * ytg_poly2
+        + kicker_season_intercepts[kicker_season_grw_idx]
+        + kicker_season_ytg_slopes[kicker_season_grw_idx] * ytg_poly2
         + beta_home * is_home
         + beta_timeofday * lighting_condition
         + beta_pressure * pressure_rating
@@ -200,8 +204,8 @@ with pm.Model() as model_poly2:
     # Sampling with increased tuning
     trace_poly2 = pm.sample(
         draws=1000,
-        tune=1000,
-        target_accept=0.9,
+        tune=2000,
+        target_accept=0.95,
         return_inferencedata=True,
         idata_kwargs={'log_likelihood': True},
         cores=n_cores,
@@ -210,12 +214,12 @@ with pm.Model() as model_poly2:
     )
 
 logger.info("Sampling complete, saving trace...")
-trace_path = os.path.join(models_dir, 'trace_poly2.nc')
+trace_path = os.path.join(models_dir, 'trace_poly2_v2.nc')
 az.to_netcdf(trace_poly2, trace_path)
 logger.info(f"Trace saved to {trace_path}")
 
 evaluate_model(model_poly2, trace_poly2, y, [
-    'alpha', 'kicker_intercept', 'kicker_ytg_slope',
+    'alpha', 'kicker_season_intercept', 'kicker_season_ytg_slope',
     'beta_home', 'beta_timeofday', 'beta_pressure', 'beta_iced',
     'beta_pressure_iced', 'beta_season',
     'beta_wind', 'beta_wind_ytg', 'beta_temp', 'beta_temp_ytg',
