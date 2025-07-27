@@ -215,7 +215,7 @@ with pm.Model() as model_poly2:
     )
 
 logger.info("Sampling complete, saving trace...")
-trace_path = os.path.join(models_dir, 'trace_poly2_v2.nc')
+trace_path = os.path.join(models_dir, 'fg_model_trace.nc')
 az.to_netcdf(trace_poly2, trace_path)
 logger.info(f"Trace saved to {trace_path}")
 
