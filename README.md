@@ -1,4 +1,5 @@
-# nfl-field-goal-model
+## 2024 Kicker Ranked by Field Goal Points Above Replacement
+<img src="images/top_kickers_fgpar_2024.png" alt="2024 FGPAR" width="700">
 
 ## 🔍 Modeling Overview
 
@@ -8,9 +9,6 @@
 - Quantify kicker performance using **Field Goal Points Above Replacement (FGPAR)**.
 - Account for both **aleatoric** and **epistemic** uncertainty.
 - Capture kicker-specific trends while allowing for generalization across players.
-
-### 2024 Kicker Ranked by Field Goal Points Above Replacement
-<img src="images/top_kickers_fgpar_2024.png" alt="2024 FGPAR" width="700">
 
 ### Process Summary
 
